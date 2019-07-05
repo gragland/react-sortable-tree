@@ -1,10 +1,12 @@
+/** @typedef {import("react-dnd").DropTargetMonitor} DropTargetMonitor */
+
 import {
-  DragSource as dragSource,
-  DropTarget as dropTarget,
   DndProvider,
+  useDrop,
+  useDrag,
 } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
-import { findDOMNode } from 'react-dom';
+import React, { useRef } from 'react';
 import { getDepth } from './tree-data-utils';
 import { memoizedInsertNode } from './memoized-tree-data-utils';
 
@@ -61,6 +63,12 @@ export default class DndManager {
     return this.treeRef.props.maxDepth;
   }
 
+  /**
+   *
+   * @param {*} dropTargetProps
+   * @param {DropTargetMonitor} monitor
+   * @param {HTMLDivElement} component
+   */
   getTargetDepth(dropTargetProps, monitor, component) {
     let dropTargetDepth = 0;
 
@@ -87,7 +95,7 @@ export default class DndManager {
       dragSourceInitialDepth = 0;
 
       if (component) {
-        const relativePosition = findDOMNode(component).getBoundingClientRect(); // eslint-disable-line react/no-find-dom-node
+        const relativePosition = component.getBoundingClientRect(); // eslint-disable-line react/no-find-dom-node
         const leftShift =
           monitor.getSourceClientOffset().x - relativePosition.left;
         blocksOffset = Math.round(
@@ -125,6 +133,11 @@ export default class DndManager {
     return targetDepth;
   }
 
+  /**
+   *
+   * @param {*} dropTargetProps
+   * @param {DropTargetMonitor} monitor
+   */
   canDrop(dropTargetProps, monitor) {
     if (!monitor.isOver()) {
       return false;
@@ -169,143 +182,137 @@ export default class DndManager {
     return true;
   }
 
-  wrapSource(el) {
-    const nodeDragSource = {
-      beginDrag: props => {
-        this.startDrag(props);
+  wrapSource(Comp) {
+    return ((props) => {
+      const ref = useRef(null);
+      const [collectedProps, connectDragSource, connectDragPreview] = useDrag({
+        item: {type: this.dndType},
+        begin: (monitor) => {
+          this.startDrag(props);
 
-        return {
-          node: props.node,
-          parentNode: props.parentNode,
-          path: props.path,
-          treeIndex: props.treeIndex,
-          treeId: props.treeId,
-        };
-      },
+          return {
+            node: props.node,
+            parentNode: props.parentNode,
+            path: props.path,
+            treeIndex: props.treeIndex,
+            treeId: props.treeId,
+          };
+        },
+        end: (item, monitor) => {
+          this.endDrag(monitor.getDropResult());
+        },
+        isDragging: (monitor) => {
+          const dropTargetNode = monitor.getItem().node;
+          const draggedNode = props.node;
 
-      endDrag: (props, monitor) => {
-        this.endDrag(monitor.getDropResult());
-      },
-
-      isDragging: (props, monitor) => {
-        const dropTargetNode = monitor.getItem().node;
-        const draggedNode = props.node;
-
-        return draggedNode === dropTargetNode;
-      },
-    };
-
-    function nodeDragSourcePropInjection(connect, monitor) {
-      return {
-        connectDragSource: connect.dragSource(),
-        connectDragPreview: connect.dragPreview(),
-        isDragging: monitor.isDragging(),
-        didDrop: monitor.didDrop(),
-      };
-    }
-
-    return dragSource(
-      this.dndType,
-      nodeDragSource,
-      nodeDragSourcePropInjection
-    )(el);
+          return draggedNode === dropTargetNode;
+        },
+        collect: (monitor) => ({
+          isDragging: monitor.isDragging(),
+          didDrop: monitor.didDrop(),
+        }),
+      });
+      return (
+        <Comp ref={ref}
+          {...props}
+          {...collectedProps}
+          connectDragSource={connectDragSource}
+          connectDragPreview={connectDragPreview}
+        />)
+    });
   }
 
-  wrapTarget(el) {
-    const nodeDropTarget = {
-      drop: (dropTargetProps, monitor, component) => {
-        const result = {
-          node: monitor.getItem().node,
-          path: monitor.getItem().path,
-          treeIndex: monitor.getItem().treeIndex,
-          treeId: this.treeId,
-          minimumTreeIndex: dropTargetProps.treeIndex,
-          depth: this.getTargetDepth(dropTargetProps, monitor, component),
-        };
+  wrapTarget(Comp) {
+    return ((props) => {
+      const ref = useRef(null);
+      const [collectedProps, connectDropTarget] = useDrop({
+        accept: this.dndType,
+        drop: (item, monitor) => {
+          const result = {
+            node: item.node,
+            path: item.path,
+            treeIndex: item.treeIndex,
+            treeId: this.treeId,
+            minimumTreeIndex: props.treeIndex,
+            depth: this.getTargetDepth(props, monitor, ref.current),
+          };
 
-        this.drop(result);
+          this.drop(result);
 
-        return result;
-      },
+          return result;
+        },
+        hover: (item, monitor) => {
+          const targetDepth = this.getTargetDepth(
+            props,
+            monitor,
+            ref.current,
+          );
+          const draggedNode = item.node;
+          const needsRedraw =
+            // Redraw if hovered above different nodes
+            (props.node !== draggedNode )||
+            // Or hovered above the same node but at a different depth
+            (targetDepth !== (props.path.length - 1));
 
-      hover: (dropTargetProps, monitor, component) => {
-        const targetDepth = this.getTargetDepth(
-          dropTargetProps,
-          monitor,
-          component
-        );
-        const draggedNode = monitor.getItem().node;
-        const needsRedraw =
-          // Redraw if hovered above different nodes
-          dropTargetProps.node !== draggedNode ||
-          // Or hovered above the same node but at a different depth
-          targetDepth !== dropTargetProps.path.length - 1;
+          if (!needsRedraw) {
+            return;
+          }
 
-        if (!needsRedraw) {
-          return;
+          this.dragHover({
+            node: draggedNode,
+            path: item.path,
+            minimumTreeIndex: props.listIndex,
+            depth: targetDepth,
+          });
+        },
+        canDrop: (item, monitor) => this.canDrop(props, monitor),
+        collect: (monitor) => {
+          const dragged = monitor.getItem();
+          return {
+            isOver: monitor.isOver(),
+            canDrop: monitor.canDrop(),
+            draggedNode: dragged ? dragged.node : null,
+          };
         }
-
-        this.dragHover({
-          node: draggedNode,
-          path: monitor.getItem().path,
-          minimumTreeIndex: dropTargetProps.listIndex,
-          depth: targetDepth,
-        });
-      },
-
-      canDrop: this.canDrop.bind(this),
-    };
-
-    function nodeDropTargetPropInjection(connect, monitor) {
-      const dragged = monitor.getItem();
-      return {
-        connectDropTarget: connect.dropTarget(),
-        isOver: monitor.isOver(),
-        canDrop: monitor.canDrop(),
-        draggedNode: dragged ? dragged.node : null,
-      };
-    }
-
-    return dropTarget(
-      this.dndType,
-      nodeDropTarget,
-      nodeDropTargetPropInjection
-    )(el);
+      });
+      return (
+        <Comp ref={ref}
+          {...props}
+          {...collectedProps}
+          connectDropTarget={connectDropTarget}
+        />)
+    });
   }
 
-  wrapPlaceholder(el) {
-    const placeholderDropTarget = {
-      drop: (dropTargetProps, monitor) => {
-        const { node, path, treeIndex } = monitor.getItem();
-        const result = {
-          node,
-          path,
-          treeIndex,
-          treeId: this.treeId,
-          minimumTreeIndex: 0,
-          depth: 0,
-        };
+  wrapPlaceholder(Comp) {
+    return ((props) => {
+      const [collectedProps, connectDropTarget] = useDrop({
+        accept: this.dndType,
+        drop: (item, monitor) => {
+          const { node, path, treeIndex } = item;
+          const result = {
+            node,
+            path,
+            treeIndex,
+            treeId: this.treeId,
+            minimumTreeIndex: 0,
+            depth: 0,
+          };
 
-        this.drop(result);
+          this.drop(result);
 
-        return result;
-      },
-    };
-
-    function placeholderPropInjection(connect, monitor) {
-      const dragged = monitor.getItem();
-      return {
-        connectDropTarget: connect.dropTarget(),
-        isOver: monitor.isOver(),
-        canDrop: monitor.canDrop(),
-        draggedNode: dragged ? dragged.node : null,
-      };
-    }
-
-    return dropTarget(
-      this.dndType,
-      placeholderDropTarget,
-      placeholderPropInjection
-    )(el);
+          return result;
+        },
+        collect: (monitor) => {
+          const dragged = monitor.getItem();
+          return {
+            isOver: monitor.isOver(),
+            canDrop: monitor.canDrop(),
+            draggedNode: dragged ? dragged.node : null,
+          };
+        }
+      });
+      return (<Comp {...props} {...collectedProps} connectDropTarget={connectDropTarget} />)
+    });
   }
 }
