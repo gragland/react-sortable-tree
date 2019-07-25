@@ -1,8 +1,13 @@
 /* eslint-disable react/no-multi-comp */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { DragSource, DndProvider } from 'react-dnd';
-import HTML5Backend from 'react-dnd-html5-backend';
+
+//import { DragSource, DndProvider } from 'react-dnd';
+//import HTML5Backend from 'react-dnd-html5-backend';
+
+import { DragSource, DndProvider } from 'react-dnd-cjs';
+import HTML5Backend from 'react-dnd-html5-backend-cjs';
+
 import { SortableTreeWithoutDndContext as SortableTree } from '../src';
 // In your own app, you would need to use import styles once in the app
 // import 'react-sortable-tree/styles.css';
@@ -65,18 +70,21 @@ class App extends Component {
   }
 
   render() {
-    return (<DndProvider backend={HTML5Backend}>
-      <div>
-        <div style={{ height: 300 }}>
-          <SortableTree
-            treeData={this.state.treeData}
-            onChange={treeData => this.setState({ treeData })}
-            dndType={externalNodeType}
-          />
+    return (
+      <DndProvider backend={HTML5Backend}>
+        <div>
+          <div style={{ height: 300 }}>
+            <SortableTree
+              treeData={this.state.treeData}
+              onChange={treeData => this.setState({ treeData })}
+              dndType={externalNodeType}
+            />
+          </div>
+          <YourExternalNodeComponent node={{ title: 'Baby Rabbit' }} />← drag
+          this
         </div>
-        <YourExternalNodeComponent node={{ title: 'Baby Rabbit' }} />← drag this
-      </div>
-    </DndProvider>);
+      </DndProvider>
+    );
   }
 }
 

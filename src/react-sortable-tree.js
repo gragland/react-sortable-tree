@@ -2,12 +2,16 @@ import React, { Component, useContext } from 'react';
 import PropTypes from 'prop-types';
 import { AutoSizer, List } from 'react-virtualized';
 import isEqual from 'lodash.isequal';
+
 import withScrolling, {
   createScrollingComponent,
   createVerticalStrength,
   createHorizontalStrength,
-} from 'frontend-collective-react-dnd-scrollzone';
-import { DndContext } from 'react-dnd';
+} from './../../frontend-collective-react-dnd-scrollzone/src';
+
+//import { DndContext } from 'react-dnd';
+import { DndContext } from 'react-dnd-cjs';
+
 import { polyfill } from 'react-lifecycles-compat';
 import 'react-virtualized/styles.css';
 import TreeNode from './tree-node';
@@ -937,9 +941,7 @@ polyfill(ReactSortableTree);
 
 const SortableTreeWithoutDndContext = props => {
   const { dragDropManager } = useContext(DndContext);
-  return (
-    <ReactSortableTree {...props} dragDropManager={dragDropManager} />
-  );
+  return <ReactSortableTree {...props} dragDropManager={dragDropManager} />;
 };
 
 // Export the tree component without the react-dnd DragDropContext,

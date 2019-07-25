@@ -1,11 +1,11 @@
 /** @typedef {import("react-dnd").DropTargetMonitor} DropTargetMonitor */
 
-import {
-  DndProvider,
-  useDrop,
-  useDrag,
-} from 'react-dnd';
-import HTML5Backend from 'react-dnd-html5-backend';
+//import { DndProvider, useDrop, useDrag } from 'react-dnd';
+//import HTML5Backend from 'react-dnd-html5-backend';
+
+import { DndProvider, useDrop, useDrag } from 'react-dnd-cjs';
+import HTML5Backend from 'react-dnd-html5-backend-cjs';
+
 import React, { useRef } from 'react';
 import { getDepth } from './tree-data-utils';
 import { memoizedInsertNode } from './memoized-tree-data-utils';
@@ -16,11 +16,11 @@ export default class DndManager {
   }
 
   static wrapRoot(Comp) {
-    return ((props) => (
+    return props => (
       <DndProvider backend={HTML5Backend}>
         <Comp {...props} />
       </DndProvider>
-    ));
+    );
   }
 
   get startDrag() {
@@ -183,11 +183,11 @@ export default class DndManager {
   }
 
   wrapSource(Comp) {
-    return ((props) => {
+    return props => {
       const ref = useRef(null);
       const [collectedProps, connectDragSource, connectDragPreview] = useDrag({
-        item: {type: this.dndType},
-        begin: (monitor) => {
+        item: { type: this.dndType },
+        begin: monitor => {
           this.startDrag(props);
 
           return {
@@ -201,29 +201,31 @@ export default class DndManager {
         end: (item, monitor) => {
           this.endDrag(monitor.getDropResult());
         },
-        isDragging: (monitor) => {
+        isDragging: monitor => {
           const dropTargetNode = monitor.getItem().node;
           const draggedNode = props.node;
 
           return draggedNode === dropTargetNode;
         },
-        collect: (monitor) => ({
+        collect: monitor => ({
           isDragging: monitor.isDragging(),
           didDrop: monitor.didDrop(),
         }),
       });
       return (
-        <Comp ref={ref}
+        <Comp
+          ref={ref}
           {...props}
           {...collectedProps}
           connectDragSource={connectDragSource}
           connectDragPreview={connectDragPreview}
-        />)
-    });
+        />
+      );
+    };
   }
 
   wrapTarget(Comp) {
-    return ((props) => {
+    return props => {
       const ref = useRef(null);
       const [collectedProps, connectDropTarget] = useDrop({
         accept: this.dndType,
@@ -242,17 +244,13 @@ export default class DndManager {
           return result;
         },
         hover: (item, monitor) => {
-          const targetDepth = this.getTargetDepth(
-            props,
-            monitor,
-            ref.current,
-          );
+          const targetDepth = this.getTargetDepth(props, monitor, ref.current);
           const draggedNode = item.node;
           const needsRedraw =
             // Redraw if hovered above different nodes
-            (props.node !== draggedNode )||
+            props.node !== draggedNode ||
             // Or hovered above the same node but at a different depth
-            (targetDepth !== (props.path.length - 1));
+            targetDepth !== props.path.length - 1;
 
           if (!needsRedraw) {
             return;
@@ -266,26 +264,28 @@ export default class DndManager {
           });
         },
         canDrop: (item, monitor) => this.canDrop(props, monitor),
-        collect: (monitor) => {
+        collect: monitor => {
           const dragged = monitor.getItem();
           return {
             isOver: monitor.isOver(),
             canDrop: monitor.canDrop(),
             draggedNode: dragged ? dragged.node : null,
           };
-        }
+        },
       });
       return (
-        <Comp ref={ref}
+        <Comp
+          ref={ref}
           {...props}
           {...collectedProps}
           connectDropTarget={connectDropTarget}
-        />)
-    });
+        />
+      );
+    };
   }
 
   wrapPlaceholder(Comp) {
-    return ((props) => {
+    return props => {
       const [collectedProps, connectDropTarget] = useDrop({
         accept: this.dndType,
         drop: (item, monitor) => {
@@ -303,16 +303,22 @@ export default class DndManager {
 
           return result;
         },
-        collect: (monitor) => {
+        collect: monitor => {
           const dragged = monitor.getItem();
           return {
             isOver: monitor.isOver(),
             canDrop: monitor.canDrop(),
             draggedNode: dragged ? dragged.node : null,
           };
-        }
+        },
       });
-      return (<Comp {...props} {...collectedProps} connectDropTarget={connectDropTarget} />)
-    });
+      return (
+        <Comp
+          {...props}
+          {...collectedProps}
+          connectDropTarget={connectDropTarget}
+        />
+      );
+    };
   }
 }

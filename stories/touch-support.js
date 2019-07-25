@@ -1,8 +1,14 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import React, { Component } from 'react';
-import { DndProvider } from 'react-dnd';
-import HTML5Backend from 'react-dnd-html5-backend';
-import TouchBackend from 'react-dnd-touch-backend';
+
+//import { DndProvider } from 'react-dnd';
+//import HTML5Backend from 'react-dnd-html5-backend';
+//import TouchBackend from 'react-dnd-touch-backend';
+
+import { DndProvider } from 'react-dnd-cjs';
+import HTML5Backend from 'react-dnd-html5-backend-cjs';
+import TouchBackend from 'react-dnd-touch-backend-cjs';
+
 import { SortableTreeWithoutDndContext as SortableTree } from '../src';
 // In your own app, you would need to use import styles once in the app
 // import 'react-sortable-tree/styles.css';
@@ -22,20 +28,22 @@ class App extends Component {
   }
 
   render() {
-    return (<DndProvider backend={isTouchDevice ? TouchBackend : HTML5Backend}>
-      <div>
-        <span>
-          This is {!isTouchDevice && 'not '}a touch-supporting browser
-        </span>
+    return (
+      <DndProvider backend={isTouchDevice ? TouchBackend : HTML5Backend}>
+        <div>
+          <span>
+            This is {!isTouchDevice && 'not '}a touch-supporting browser
+          </span>
 
-        <div style={{ height: 300 }}>
-          <SortableTree
-            treeData={this.state.treeData}
-            onChange={treeData => this.setState({ treeData })}
-          />
+          <div style={{ height: 300 }}>
+            <SortableTree
+              treeData={this.state.treeData}
+              onChange={treeData => this.setState({ treeData })}
+            />
+          </div>
         </div>
-      </div>
-    </DndProvider>);
+      </DndProvider>
+    );
   }
 }
 

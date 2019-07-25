@@ -3,9 +3,15 @@ import PropTypes from 'prop-types';
 import renderer from 'react-test-renderer';
 import { mount } from 'enzyme';
 import { List } from 'react-virtualized';
-import { DndProvider } from 'react-dnd';
-import HTML5Backend from 'react-dnd-html5-backend';
-import TouchBackend from 'react-dnd-touch-backend';
+
+//import { DndProvider } from 'react-dnd';
+//import HTML5Backend from 'react-dnd-html5-backend';
+//import TouchBackend from 'react-dnd-touch-backend';
+
+import { DndProvider } from 'react-dnd-cjs';
+import HTML5Backend from 'react-dnd-html5-backend-cjs';
+import TouchBackend from 'react-dnd-touch-backend-cjs';
+
 import SortableTree, {
   SortableTreeWithoutDndContext,
 } from './react-sortable-tree';
@@ -402,27 +408,36 @@ describe('<SortableTree />', () => {
 
   it('loads using SortableTreeWithoutDndContext', () => {
     expect(
-      mount(<DndProvider backend={HTML5Backend}>
-        <SortableTreeWithoutDndContext treeData={[{ title: 'a' }]} onChange={() => {}} />
-      </DndProvider>)
+      mount(
+        <DndProvider backend={HTML5Backend}>
+          <SortableTreeWithoutDndContext
+            treeData={[{ title: 'a' }]}
+            onChange={() => {}}
+          />
+        </DndProvider>
+      )
     ).toBeDefined();
     expect(
-      mount(<DndProvider backend={TouchBackend}>
-        <TouchWrapped treeData={[{ title: 'a' }]} onChange={() => {}} />
-      </DndProvider>)
+      mount(
+        <DndProvider backend={TouchBackend}>
+          <TouchWrapped treeData={[{ title: 'a' }]} onChange={() => {}} />
+        </DndProvider>
+      )
     ).toBeDefined();
   });
 
   it('loads using SortableTreeWithoutDndContext', () => {
     const onDragStateChanged = jest.fn();
     const treeData = [{ title: 'a' }, { title: 'b' }];
-    const wrapper = mount(<DndProvider backend={HTML5Backend}>
-      <SortableTreeWithoutDndContext
-        treeData={treeData}
-        onDragStateChanged={onDragStateChanged}
-        onChange={() => {}}
-      />
-    </DndProvider>);
+    const wrapper = mount(
+      <DndProvider backend={HTML5Backend}>
+        <SortableTreeWithoutDndContext
+          treeData={treeData}
+          onDragStateChanged={onDragStateChanged}
+          onChange={() => {}}
+        />
+      </DndProvider>
+    );
 
     // Obtain a reference to the backend
     const backend = wrapper
