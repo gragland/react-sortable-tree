@@ -1,6 +1,6 @@
 <div align="center">
   <img src="https://cloud.githubusercontent.com/assets/4413963/18860410/26f64de8-84b8-11e6-9284-350308eed30a.png"/>
-  <div>Sponsored <a href="https://divjoy.com">Divjoy</a> ✨</div> 
+  <div>(Sponsored by <a href="https://divjoy.com">Divjoy</a>)</div> 
 </div>
 
 # React Sortable Tree
