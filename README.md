@@ -1,9 +1,10 @@
 <div align="center">
   <img src="https://cloud.githubusercontent.com/assets/4413963/18860410/26f64de8-84b8-11e6-9284-350308eed30a.png"/>
-  <div>[Sponsored by <a href="https://divjoy.com">Divjoy</a>]</div> 
+  <div>Sponsored by <a href="https://divjoy.com">Divjoy</a></div> 
 </div>
 
 # React Sortable Tree
+<sup>Sponsored by <a href="https://divjoy.com">Divjoy</a></sup>
 
 ![NPM version](https://img.shields.io/npm/v/react-sortable-tree.svg?style=flat)
 ![NPM license](https://img.shields.io/npm/l/react-sortable-tree.svg?style=flat)
