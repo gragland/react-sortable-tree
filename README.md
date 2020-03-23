@@ -1,10 +1,8 @@
 <div align="center">
   <img src="https://cloud.githubusercontent.com/assets/4413963/18860410/26f64de8-84b8-11e6-9284-350308eed30a.png"/>
-  <div>Sponsored by <a href="https://divjoy.com">Divjoy</a></div> 
 </div>
 
 # React Sortable Tree
-<sup>Sponsored by <a href="https://divjoy.com">Divjoy</a></sup>
 
 ![NPM version](https://img.shields.io/npm/v/react-sortable-tree.svg?style=flat)
 ![NPM license](https://img.shields.io/npm/l/react-sortable-tree.svg?style=flat)
@@ -15,6 +13,8 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 
 > A React component for Drag-and-drop sortable representation of hierarchical data. Checkout the [demo](https://frontend-collective.github.io/react-sortable-tree/) for a demonstration of some basic features. Checkout the [storybook](https://frontend-collective.github.io/react-sortable-tree/storybook) for advanced usage.
+
+> Sponsored by [Divjoy](https://divjoy.com)
 
 <div align="center">
   <img src="https://cloud.githubusercontent.com/assets/4413963/19334888/2be8261c-913a-11e6-9508-4b347ae114b4.gif"/>
